@@ -1,3 +1,4 @@
+#include "Commands.h"
 #include "SerialUtils.h"
 
 SerialUtils serial(&Serial);
@@ -11,6 +12,6 @@ void loop() {
 
   if (serial.available()) {
     String received = serial.receive();
-    Serial.println(received);
+    Commands::processCommand(&received, &Serial);
   }
 }
