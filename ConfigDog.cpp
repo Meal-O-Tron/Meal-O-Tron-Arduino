@@ -26,6 +26,7 @@ void ConfigDog::loadConfig(JsonObject *config) {
 }
 
 String ConfigDog::generateConfig() {
+  // Create a buffer and populate it
   const int capacity = JSON_OBJECT_SIZE(5);
   StaticJsonBuffer<capacity> buffer;
   JsonObject& object = buffer.createObject();

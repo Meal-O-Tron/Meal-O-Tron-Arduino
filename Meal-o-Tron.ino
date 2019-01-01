@@ -1,11 +1,13 @@
 #include <SD.h>
 #include "Commands.h"
 #include "ConfigDog.h"
+#include "ConfigSchedule.h"
 #include "SerialUtils.h"
 
 SerialUtils serial(&Serial);
 
 ConfigDog configDog;
+ConfigSchedule configSchedule;
 
 void setup() {
   // Init serial port 0
@@ -34,7 +36,24 @@ void setup() {
       }
     }
 
-    Serial.println(configDog.generateConfig());
+    if (SD.exists("sched.cfg")) {
+      String savedConfigSchedule;
+      configFile = SD.open("sched.cfg", FILE_READ);
+
+      while (configFile.available()) {
+        savedConfigSchedule += (char)configFile.read();
+      }
+
+      configFile.close();
+      
+      StaticJsonBuffer<256> jsonBuffer;
+      JsonArray& root = jsonBuffer.parseArray(savedConfigSchedule);
+      if (root.success()) {
+        configSchedule.loadConfig(&root);
+      }
+    }
+
+    Serial.println(configSchedule.generateConfig());
   } else {
     Serial.println("[FAIL] SD Card");
   }
