@@ -3,11 +3,13 @@
 #include "ConfigDog.h"
 #include "ConfigSchedule.h"
 #include "SerialUtils.h"
+#include "Stats.h"
 
 SerialUtils serial(&Serial);
 
 ConfigDog configDog;
 ConfigSchedule configSchedule;
+Stats stats;
 
 void setup() {
   // Init serial port 0
@@ -36,6 +38,7 @@ void setup() {
       }
     }
 
+    // Load the schedule configuration file
     if (SD.exists("sched.cfg")) {
       String savedConfigSchedule;
       configFile = SD.open("sched.cfg", FILE_READ);
@@ -46,10 +49,30 @@ void setup() {
 
       configFile.close();
       
-      StaticJsonBuffer<256> jsonBuffer;
+      StaticJsonBuffer<512> jsonBuffer;
       JsonArray& root = jsonBuffer.parseArray(savedConfigSchedule);
       if (root.success()) {
         configSchedule.loadConfig(&root);
+        Serial.println("Used capacity: " + String(jsonBuffer.size()));
+      }
+    }
+
+    // Load previously saved statistics
+    if (SD.exists("stats.cfg")) {
+      String savedStats;
+      configFile = SD.open("stats.cfg", FILE_READ);
+
+      while (configFile.available()) {
+        savedStats += (char)configFile.read();
+      }
+
+      configFile.close();
+
+      const int capacity = JSON_OBJECT_SIZE(3) + 3 * JSON_ARRAY_SIZE(30);
+      StaticJsonBuffer<capacity> jsonBuffer;
+      JsonObject& root = jsonBuffer.parseObject(savedStats);
+      if (root.success()) {
+        stats.loadStats(&root);
       }
     }
 
