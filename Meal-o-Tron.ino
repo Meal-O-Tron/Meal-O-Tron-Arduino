@@ -1,20 +1,58 @@
+#include <SD.h>
 #include "Commands.h"
+#include "ConfigDog.h"
 #include "SerialUtils.h"
 
 SerialUtils serial(&Serial);
 
+ConfigDog configDog;
+
 void setup() {
+  // Init serial port 0
   serial.begin(115200);
+
+  // Init SD Card
+  if (SD.begin(26)) {
+    Serial.println("[OK] SD Card");
+    File configFile;
+
+    // Load dog configuration file
+    if (SD.exists("dog.cfg")) {
+      String savedConfigDog;
+      configFile = SD.open("dog.cfg", FILE_READ);
+
+      while (configFile.available()) {
+        savedConfigDog += (char)configFile.read();
+      }
+
+      configFile.close();
+      
+      StaticJsonBuffer<256> jsonBuffer;
+      JsonObject& root = jsonBuffer.parseObject(savedConfigDog);
+      if (root.success()) {
+        configDog.loadConfig(&root);
+      }
+    }
+
+    Serial.println(configDog.generateConfig());
+  } else {
+    Serial.println("[FAIL] SD Card");
+  }
+  
   Serial.println("=== MEAL-O-TRON STARTED ===");
 }
 
 void loop() {
+  // Read serial ports for new data
   serial.update();
 
+  // Data available (ends with \n)
   if (serial.available()) {
+    // Store the received string and try to process it
     String received = serial.receive();
     JsonObject *json;
-    
+
+    // Check if the string can be processed
     if (Commands::processCommand(&received, &Serial, json)) {
       Commands::RequestType rqt = (*json)["type"].as<int>();
 
@@ -59,6 +97,7 @@ void loop() {
           break;
         }
         default: {
+          // Unknown command
           if (rqt < Commands::DATA_GLOBAL_RELOAD || rqt > Commands::DATA_DOG_END)
             Commands::sendError(&Serial, -3);
             

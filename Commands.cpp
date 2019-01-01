@@ -1,7 +1,8 @@
 #include "Commands.h"
 
 int Commands::processCommand(String *command, HardwareSerial *interface, JsonObject *json) {
-  StaticJsonBuffer<1024> jsonBuffer;
+  // Parse the string to check if it's a valid command
+  StaticJsonBuffer<256> jsonBuffer;
   JsonObject& root = jsonBuffer.parseObject(*command);
 
   if (root.success()) {
@@ -19,5 +20,6 @@ int Commands::processCommand(String *command, HardwareSerial *interface, JsonObj
 }
 
 void Commands::sendError(HardwareSerial *interface, int err) {
+  // Helper func to send an error to the provided serial interface
   interface->println("{\"error\": " + String(err) + "}");
 }

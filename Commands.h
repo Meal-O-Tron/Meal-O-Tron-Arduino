@@ -36,4 +36,4 @@ class Commands {
     static void sendError(HardwareSerial *interface, int err);
 };
 
-#endif
+#endif // COMMANDS_H

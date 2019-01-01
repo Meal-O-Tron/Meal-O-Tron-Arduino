@@ -23,4 +23,4 @@ class SerialUtils {
     HardwareSerial *m_serialPort;
 };
 
-#endif
+#endif // SERIALUTILS_H
