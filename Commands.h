@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include <ArduinoJson.h>
+#include "App.h"
 
 class Commands {
   public:
@@ -31,7 +32,7 @@ class Commands {
       DATA_DOG_END,
     };
 
-    static int processCommand(String *command, HardwareSerial *interface, JsonObject *json);
+    static int processCommand(String *command, HardwareSerial *interface, App *app);
     
     static void sendError(HardwareSerial *interface, int err);
 };

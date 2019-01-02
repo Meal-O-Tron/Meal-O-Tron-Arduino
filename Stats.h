@@ -6,8 +6,14 @@
 
 class Stats {
   public:
+    enum StatType {
+      STAT_WEIGHT,
+      STAT_ARRIVAL,
+      STAT_FOOD,
+    };
+    
     void loadStats(JsonObject *stats);
-    String generateStats();
+    String getStat(StatType type);
 
     float getWeightAt(size_t index);
     unsigned int getArrivalAt(size_t index);
@@ -19,4 +25,4 @@ class Stats {
     float m_food[30];
 };
 
-#endif
+#endif // STATS_H

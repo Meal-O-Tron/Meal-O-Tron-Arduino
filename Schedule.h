@@ -26,4 +26,4 @@ class Schedule {
     boolean m_enabled;
 };
 
-#endif
+#endif SCHEDULE_H

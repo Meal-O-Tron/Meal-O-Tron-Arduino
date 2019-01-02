@@ -14,18 +14,30 @@ void Stats::loadStats(JsonObject *stats) {
     statsRef["food"].as<JsonArray>().copyTo(m_food);
 }
 
-String Stats::generateStats() {
-  // Create a buffer and populate it
-  const int capacity = JSON_OBJECT_SIZE(3) + 3 * JSON_ARRAY_SIZE(30);
+String Stats::getStat(StatType type) {
+  // Create an array to store the 30 days long data
+  const int capacity = JSON_ARRAY_SIZE(30);
   StaticJsonBuffer<capacity> buffer;
-  JsonObject& object = buffer.createObject();
+  JsonArray& jsArray = buffer.createArray();
 
-  object.createNestedArray("weight").copyFrom(m_weight);
-  object.createNestedArray("arrival").copyFrom(m_arrival);
-  object.createNestedArray("food").copyFrom(m_food);
+  // Copy the right array dependign on the wanted stat
+  switch (type) {
+    case STAT_WEIGHT: {
+      jsArray.copyFrom(m_weight);
+      break;
+    }
+    case STAT_ARRIVAL: {
+      jsArray.copyFrom(m_arrival);
+      break;
+    }
+    case STAT_FOOD: {
+      jsArray.copyFrom(m_food);
+      break;
+    }
+  }
 
   String ret;
-  object.printTo(ret);
+  jsArray.printTo(ret);
   return ret;
 }
 
