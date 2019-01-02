@@ -4,6 +4,7 @@
 #include "Arduino.h"
 #include "ConfigDog.h"
 #include "ConfigSchedule.h"
+#include "RTC.h"
 #include "SerialUtils.h"
 #include "Stats.h"
 
@@ -27,6 +28,8 @@ class App {
     ConfigDog m_configDog;
     ConfigSchedule m_configSchedule;
     Stats m_stats;
+
+    RTC m_rtc;
 };
 
 #endif // APP_H
