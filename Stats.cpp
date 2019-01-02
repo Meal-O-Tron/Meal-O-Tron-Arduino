@@ -20,18 +20,27 @@ String Stats::getStat(StatType type) {
   StaticJsonBuffer<capacity> buffer;
   JsonArray& jsArray = buffer.createArray();
 
-  // Copy the right array dependign on the wanted stat
+  // Check how many days are worth copying (i.e. not blank)
+  int daysToCopy = 30;
+  for (int i = 29; i >= 0; i--) {
+    if (m_weight[i] != 0 || m_arrival[i] != 0 || m_food[i] != 0) {
+      daysToCopy = i + 1;
+      break;
+    }
+  }
+
+  // Copy the right array depending on the wanted stat
   switch (type) {
     case STAT_WEIGHT: {
-      jsArray.copyFrom(m_weight);
+      jsArray.copyFrom(m_weight, daysToCopy);
       break;
     }
     case STAT_ARRIVAL: {
-      jsArray.copyFrom(m_arrival);
+      jsArray.copyFrom(m_arrival, daysToCopy);
       break;
     }
     case STAT_FOOD: {
-      jsArray.copyFrom(m_food);
+      jsArray.copyFrom(m_food, daysToCopy);
       break;
     }
   }
