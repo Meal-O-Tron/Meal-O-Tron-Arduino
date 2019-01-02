@@ -57,11 +57,11 @@ void ConfigDog::setWeight(float weight) {
   m_weight = weight;
 }
 
-boolean ConfigDog::isWeightRegulationEnabled() {
+boolean ConfigDog::isRegulationEnabled() {
   return m_weightRegulationEnabled;
 }
 
-void ConfigDog::setWeightRegulationEnabled(boolean enabled) {
+void ConfigDog::setRegulationEnabled(boolean enabled) {
   m_weightRegulationEnabled = enabled;
 }
 

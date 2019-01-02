@@ -13,7 +13,7 @@ void ConfigSchedule::loadConfig(JsonArray* config) {
       JsonObject& currentObject = configRef.get<JsonObject>(i);
 
       if (currentObject["hour"].is<unsigned int>() && currentObject["minute"].is<unsigned int>() && currentObject["ratio"].is<unsigned int>() && currentObject["enabled"].is<boolean>()) {
-        Schedule* schedule = new Schedule(currentObject["hour"].as<unsigned int>(), currentObject["minute"].as<unsigned int>(), currentObject["ratio"].as<unsigned int>(), currentObject["enabled"].as<boolean>());
+        Schedule *schedule = new Schedule(currentObject["hour"].as<unsigned int>(), currentObject["minute"].as<unsigned int>(), currentObject["ratio"].as<unsigned int>(), currentObject["enabled"].as<boolean>());
         m_scheduleList.add(schedule);
       }
     }

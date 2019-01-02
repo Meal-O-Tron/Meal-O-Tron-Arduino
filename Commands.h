@@ -33,8 +33,10 @@ class Commands {
     };
 
     static int processCommand(String *command, HardwareSerial *interface, App *app);
-    
+
+  private:
     static void sendError(HardwareSerial *interface, int err);
+    static JsonVariant clone(JsonBuffer& jb, JsonVariant prototype);
 };
 
 #endif // COMMANDS_H

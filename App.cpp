@@ -105,3 +105,21 @@ ConfigSchedule* App::getConfigSchedule() {
 Stats* App::getStats() {
   return &m_stats;
 }
+
+void App::saveConfigDog() {
+  // Clear the file and save the configuration
+  SD.remove("dog.cfg");
+  
+  File configFile = SD.open("dog.cfg", FILE_WRITE);
+  configFile.print(m_configDog.generateConfig());
+  configFile.close();
+}
+
+void App::saveConfigSchedule() {
+  // Clear the file and save the configuration
+  SD.remove("sched.cfg");
+  
+  File configFile = SD.open("sched.cfg", FILE_WRITE);
+  configFile.print(m_configSchedule.generateConfig());
+  configFile.close();
+}

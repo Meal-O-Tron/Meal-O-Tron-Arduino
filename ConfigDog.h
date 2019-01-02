@@ -17,8 +17,8 @@ class ConfigDog {
     float getWeight();
     void setWeight(float weight);
 
-    boolean isWeightRegulationEnabled();
-    void setWeightRegulationEnabled(boolean enabled);
+    boolean isRegulationEnabled();
+    void setRegulationEnabled(boolean enabled);
 
     unsigned int getRegulationValue();
     void setRegulationValue(unsigned int value);

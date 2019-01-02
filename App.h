@@ -18,6 +18,9 @@ class App {
     ConfigSchedule* getConfigSchedule();
     Stats* getStats();
 
+    void saveConfigDog();
+    void saveConfigSchedule();
+
   private:
     SerialUtils m_serial;
 
