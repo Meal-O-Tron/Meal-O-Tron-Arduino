@@ -176,8 +176,8 @@ int Commands::processCommand(String *command, HardwareSerial *interface, App *ap
       else if (rqt > DATA_DOG_START && rqt < DATA_DOG_END)
         app->saveConfigDog();
 
-      root.printTo(Serial);
-      Serial.println();
+      root.printTo(*interface);
+      interface->println();
       
       return 1;
     } else {

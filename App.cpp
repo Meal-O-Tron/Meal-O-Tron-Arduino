@@ -3,14 +3,15 @@
 #include "Commands.h"
 
 App::App()
-: m_serial(&Serial)
+: m_serial(&Serial1)
 {
   
 }
 
 void App::setup() {
-  // Init serial port 0
+  // Init serial port 0 (USB) and 1 (ESP8266)
   m_serial.begin(115200);
+  Serial.begin(9600);
 
   // Init SD Card
   if (SD.begin(26)) {
@@ -87,10 +88,8 @@ void App::loop() {
     // Store the received string and try to process it
     String received = m_serial.receive();
 
-    // Check if the string can be processed
-    if (Commands::processCommand(&received, &Serial, this)) {
-      
-    }
+    // Process the string
+    Commands::processCommand(&received, &Serial1, this);
   }
 }
 
