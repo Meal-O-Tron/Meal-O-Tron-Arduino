@@ -2,6 +2,7 @@
 
 SerialUtils::SerialUtils(HardwareSerial *serialPort)
 : m_isAvailable(0)
+, m_isUp(false)
 {
   m_serialPort = serialPort;
 }
@@ -41,5 +42,16 @@ int SerialUtils::available() {
 
 void SerialUtils::begin(long baudrate) {
   m_communicationSpeed = baudrate;
+  m_isUp = true;
+  
   m_serialPort->begin(baudrate);
+}
+
+void SerialUtils::end() {
+  m_isUp = false;
+  m_serialPort->end();
+}
+
+bool SerialUtils::isUp() {
+  return m_isUp;
 }

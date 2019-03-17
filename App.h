@@ -24,12 +24,15 @@ class App {
 
   private:
     SerialUtils m_serial;
+    void checkESPState();
+    String getConfigESP();
 
     ConfigDog m_configDog;
     ConfigSchedule m_configSchedule;
     Stats m_stats;
 
     RTC m_rtc;
+    void onMinuteChanged();
 };
 
 #endif // APP_H

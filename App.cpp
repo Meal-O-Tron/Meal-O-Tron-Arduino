@@ -9,9 +9,11 @@ App::App()
 }
 
 void App::setup() {
-  // Init serial port 0 (USB) and 1 (ESP8266)
-  m_serial.begin(115200);
+  // Init serial port 0 (USB)
   Serial.begin(9600);
+
+  // Init RTC
+  m_rtc.begin();
 
   // Init SD Card
   if (SD.begin(26)) {
@@ -75,11 +77,22 @@ void App::setup() {
   } else {
     Serial.println("[FAIL] SD Card");
   }
+
+  // To read ESP state
+  pinMode(2, INPUT_PULLUP);
   
   Serial.println("=== MEAL-O-TRON STARTED ===");
 }
 
 void App::loop() {
+  checkESPState();
+  
+  // Update rtc status and check for scheduled event
+  m_rtc.update();
+
+  if (m_rtc.getCurrentDate().minute() != m_rtc.getPreviousDate().minute())
+    onMinuteChanged();
+  
   // Read serial ports for new data
   m_serial.update();
 
@@ -87,9 +100,13 @@ void App::loop() {
   if (m_serial.available()) {
     // Store the received string and try to process it
     String received = m_serial.receive();
+    if (received.length() > 0) {
+      Serial.println(received);
+      //Serial1.println();
 
-    // Process the string
-    Commands::processCommand(&received, &Serial1, this);
+      // Process the string
+      Commands::processCommand(&received, &Serial1, this);
+    }
   }
 }
 
@@ -121,4 +138,62 @@ void App::saveConfigSchedule() {
   File configFile = SD.open("sched.cfg", FILE_WRITE);
   configFile.print(m_configSchedule.generateConfig());
   configFile.close();
+}
+
+String App::getConfigESP() {
+  if (SD.exists("esp.cfg")) {
+    String savedConfigESP;
+    File configFile = SD.open("esp.cfg", FILE_READ);
+    
+    while (configFile.available()) {
+      char actualChar = (char)configFile.read();
+      if (actualChar == '\n')
+        break;
+        
+      savedConfigESP += actualChar;
+    }
+
+    configFile.close();
+    return savedConfigESP;
+  } else {
+    StaticJsonBuffer<JSON_OBJECT_SIZE(1)> jsonBuffer;
+    JsonObject& root = jsonBuffer.createObject();
+    String configESP;
+
+    root["init"] = false;
+
+    root.printTo(configESP);
+    return configESP;
+  }
+}
+
+void App::onMinuteChanged() {
+  LinkedList<Schedule*> *scheduleList = m_configSchedule.getScheduleList();
+  DateTime currentDate = m_rtc.getCurrentDate();
+  
+  for (int i = 0; i < scheduleList->size(); i++) {
+    Schedule *currentSchedule = scheduleList->get(i);
+    if (currentSchedule->isEnabled() && currentSchedule->getHour() == currentDate.hour() && currentSchedule->getMinute() == currentDate.minute()) {
+      Serial.println("okay");
+    }
+  }
+}
+
+void App::checkESPState() {
+  if (!digitalRead(2) && !m_serial.isUp()) {
+    // ESP is up, send informations
+    m_serial.begin(115200);
+
+    StaticJsonBuffer<512> jsonBuffer;
+    JsonObject& root = jsonBuffer.createObject();
+
+    root["type"] = 100;
+    root["data"] = RawJson(getConfigESP());
+
+    root.printTo(Serial1);
+    Serial1.println();
+  } else if (digitalRead(2) && m_serial.isUp()) {
+    // ESP is down
+    m_serial.end();
+  }
 }

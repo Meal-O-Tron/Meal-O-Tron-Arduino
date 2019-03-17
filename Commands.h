@@ -30,6 +30,8 @@ class Commands {
       DATA_DOG_REGULATION_ENABLE,
       DATA_DOG_REGULATION_VALUE,
       DATA_DOG_END,
+
+      ESP_CONFIG_REQUEST = 100,
     };
 
     static int processCommand(String *command, HardwareSerial *interface, App *app);
