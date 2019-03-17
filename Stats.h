@@ -12,7 +12,7 @@ class Stats {
       STAT_FOOD,
     };
     
-    void loadStats(JsonObject *stats);
+    void loadStats(JsonDocument *stats);
     String getStat(StatType type);
 
     float getWeightAt(size_t index);

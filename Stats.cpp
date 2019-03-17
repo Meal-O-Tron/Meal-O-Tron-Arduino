@@ -1,24 +1,24 @@
 #include "Stats.h"
 
-void Stats::loadStats(JsonObject *stats) {
+void Stats::loadStats(JsonDocument *stats) {
   // Load all the config
-  JsonObject& statsRef = *stats;
+  JsonDocument statsRef = *stats;
 
   if (statsRef["weight"].is<JsonArray>())
-    statsRef["weight"].as<JsonArray>().copyTo(m_weight);
+    copyArray(statsRef["weight"].as<JsonArray>(), m_weight);
 
   if (statsRef["arrival"].is<JsonArray>())
-    statsRef["arrival"].as<JsonArray>().copyTo(m_arrival);
+    copyArray(statsRef["arrival"].as<JsonArray>(), m_arrival);
 
   if (statsRef["food"].is<JsonArray>())
-    statsRef["food"].as<JsonArray>().copyTo(m_food);
+    copyArray(statsRef["food"].as<JsonArray>(), m_food);
 }
 
 String Stats::getStat(StatType type) {
   // Create an array to store the 30 days long data
   const int capacity = JSON_ARRAY_SIZE(30);
-  StaticJsonBuffer<capacity> buffer;
-  JsonArray& jsArray = buffer.createArray();
+  StaticJsonDocument<capacity> doc;
+  JsonArray jsArray = doc.to<JsonArray>();
 
   // Check how many days are worth copying (i.e. not blank)
   int daysToCopy = 30;
@@ -32,21 +32,21 @@ String Stats::getStat(StatType type) {
   // Copy the right array depending on the wanted stat
   switch (type) {
     case STAT_WEIGHT: {
-      jsArray.copyFrom(m_weight, daysToCopy);
+      copyArray(m_weight, daysToCopy, jsArray);
       break;
     }
     case STAT_ARRIVAL: {
-      jsArray.copyFrom(m_arrival, daysToCopy);
+      copyArray(m_arrival, daysToCopy, jsArray);
       break;
     }
     case STAT_FOOD: {
-      jsArray.copyFrom(m_food, daysToCopy);
+      copyArray(m_food, daysToCopy, jsArray);
       break;
     }
   }
 
   String ret;
-  jsArray.printTo(ret);
+  serializeJson(jsArray, ret);
   return ret;
 }
 

@@ -32,13 +32,13 @@ class Commands {
       DATA_DOG_END,
 
       ESP_CONFIG_REQUEST = 100,
+      ESP_UPDATE_TIME,
     };
 
     static int processCommand(String *command, HardwareSerial *interface, App *app);
 
   private:
-    static void sendError(HardwareSerial *interface, int err);
-    static JsonVariant clone(JsonBuffer& jb, JsonVariant prototype);
+    static void sendError(Print *interface, int err);
 };
 
 #endif // COMMANDS_H

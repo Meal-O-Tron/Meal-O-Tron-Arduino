@@ -13,6 +13,8 @@ class RTC {
     DateTime getCurrentDate();
     DateTime getPreviousDate();
 
+    void setTime(int year, int month, int day, int dow, int hour, int minute, int second);
+
   private:
     DS3231 m_rtc;
 

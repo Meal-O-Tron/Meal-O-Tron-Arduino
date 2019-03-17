@@ -8,7 +8,7 @@ class ConfigDog {
   public:
     ConfigDog();
 
-    void loadConfig(JsonObject *config);
+    void loadConfig(JsonDocument *config);
     String generateConfig();
 
     String getName();

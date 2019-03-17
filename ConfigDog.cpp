@@ -8,9 +8,9 @@ ConfigDog::ConfigDog()
   
 }
 
-void ConfigDog::loadConfig(JsonObject *config) {
+void ConfigDog::loadConfig(JsonDocument *config) {
   // Load all the config
-  JsonObject& configRef = *config;
+  JsonDocument configRef = *config;
 
   if (configRef["name"].is<String>())
     m_name = configRef["name"].as<String>();
@@ -28,16 +28,15 @@ void ConfigDog::loadConfig(JsonObject *config) {
 String ConfigDog::generateConfig() {
   // Create a buffer and populate it
   const int capacity = JSON_OBJECT_SIZE(5);
-  StaticJsonBuffer<capacity> buffer;
-  JsonObject& object = buffer.createObject();
+  StaticJsonDocument<capacity> doc;
 
-  object["name"] = m_name;
-  object["weight"] = m_weight;
-  object["weight_reg"] = m_weightRegulationEnabled;
-  object["weight_reg_value"] = m_weightRegulationValue;
+  doc["name"] = m_name;
+  doc["weight"] = m_weight;
+  doc["weight_reg"] = m_weightRegulationEnabled;
+  doc["weight_reg_value"] = m_weightRegulationValue;
 
   String ret;
-  object.printTo(ret);
+  serializeJson(doc, ret);
   return ret;
 }
 

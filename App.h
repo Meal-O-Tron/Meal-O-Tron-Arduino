@@ -18,6 +18,7 @@ class App {
     ConfigDog* getConfigDog();
     ConfigSchedule* getConfigSchedule();
     Stats* getStats();
+    RTC* getRTC();
 
     void saveConfigDog();
     void saveConfigSchedule();

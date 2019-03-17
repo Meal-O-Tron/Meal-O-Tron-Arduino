@@ -2,44 +2,44 @@
 
 int Commands::processCommand(String *command, HardwareSerial *interface, App *app) {
   // Parse the string to check if it's a valid command
-  DynamicJsonBuffer jsonBuffer(512);
-  JsonObject& root = jsonBuffer.parseObject(*command);
+  DynamicJsonDocument doc(512);
+  DeserializationError error = deserializeJson(doc, *command);
 
-  if (root.success()) {
-    if (root["type"].is<int>() && root["data"].is<JsonObject>()) {
-      Commands::RequestType rqt = root["type"].as<int>();
-      JsonObject& inData = root["data"].as<JsonObject>();
+  if (!error) {
+    if (doc["type"].is<int>() && doc["data"].is<JsonObject>()) {
+      Commands::RequestType rqt = doc["type"].as<int>();
+      JsonObject inData = doc["data"].as<JsonObject>();
 
       // Populate common values accross request types
-      JsonObject& root = jsonBuffer.createObject();
+      DynamicJsonDocument response(512);
       
-      root["type"] = (int)rqt;
-      JsonObject& data = clone(jsonBuffer, inData);
-      root["data"] = data;
+      response["type"] = (int)rqt;
+      JsonObject data = inData;
+      response["data"] = data;
 
       switch (rqt) {
         case Commands::DATA_GLOBAL_RELOAD: {
-          JsonObject& data_stats = data.createNestedObject("stats");
+          JsonObject data_stats = data.createNestedObject("stats");
 
-          data_stats["weight"] = RawJson(app->getStats()->getStat(Stats::STAT_WEIGHT));
-          data_stats["food"] = RawJson(app->getStats()->getStat(Stats::STAT_FOOD));
-          data_stats["arrival"] = RawJson(app->getStats()->getStat(Stats::STAT_ARRIVAL));
+          data_stats["weight"] = serialized(app->getStats()->getStat(Stats::STAT_WEIGHT));
+          data_stats["food"] = serialized(app->getStats()->getStat(Stats::STAT_FOOD));
+          data_stats["arrival"] = serialized(app->getStats()->getStat(Stats::STAT_ARRIVAL));
           
-          data["dog"] = RawJson(app->getConfigDog()->generateConfig());
-          data["schedule"] = RawJson(app->getConfigSchedule()->generateConfig());
+          data["dog"] = serialized(app->getConfigDog()->generateConfig());
+          data["schedule"] = serialized(app->getConfigSchedule()->generateConfig());
 
           break;
         }
         case Commands::DATA_STATS_WEIGHT: {
-          data["values"] = RawJson(app->getStats()->getStat(Stats::STAT_WEIGHT));
+          data["values"] = serialized(app->getStats()->getStat(Stats::STAT_WEIGHT));
           break;
         }
         case Commands::DATA_STATS_REMAINING_FOOD: {
-          data["values"] = RawJson(app->getStats()->getStat(Stats::STAT_FOOD));
+          data["values"] = serialized(app->getStats()->getStat(Stats::STAT_FOOD));
           break;
         }
         case Commands::DATA_STATS_DOG_ARRIVAL: {
-          data["values"] = RawJson(app->getStats()->getStat(Stats::STAT_ARRIVAL));
+          data["values"] = serialized(app->getStats()->getStat(Stats::STAT_ARRIVAL));
           break;
         }
         case Commands::DATA_SCHEDULE_ADD: {
@@ -104,7 +104,7 @@ int Commands::processCommand(String *command, HardwareSerial *interface, App *ap
             return 0;
           }
 
-          JsonObject& value = inData["value"].as<JsonObject>();
+          JsonObject value = inData["value"].as<JsonObject>();
           if (!value["hour"].is<unsigned int>() || !value["minute"].is<unsigned int>()) {
             sendError(interface, -4);
             return 0;
@@ -162,6 +162,13 @@ int Commands::processCommand(String *command, HardwareSerial *interface, App *ap
           
           break;
         }
+        case Commands::ESP_UPDATE_TIME: {
+          if (data["year"].is<int>() && data["month"].is<int>() && data["date"].is<int>() && data["dow"].is<int>() && data["hour"].is<int>() && data["minute"].is<int>() && data["second"].is<int>()) {
+            app->getRTC()->setTime(data["year"].as<int>(), data["month"].as<int>(), data["date"].as<int>(), data["dow"].as<int>(), data["hour"].as<int>(), data["minute"].as<int>(), data["second"].as<int>());
+          }
+          
+          break;
+        }
         default: {
           // Unknown command
           if (rqt < Commands::DATA_GLOBAL_RELOAD || rqt > Commands::DATA_DOG_END)
@@ -176,7 +183,7 @@ int Commands::processCommand(String *command, HardwareSerial *interface, App *ap
       else if (rqt > DATA_DOG_START && rqt < DATA_DOG_END)
         app->saveConfigDog();
 
-      root.printTo(*interface);
+      serializeJson(doc, *interface);
       interface->println();
       
       return 1;
@@ -190,33 +197,7 @@ int Commands::processCommand(String *command, HardwareSerial *interface, App *ap
   return 0;
 }
 
-void Commands::sendError(HardwareSerial *interface, int err) {
+void Commands::sendError(Print *interface, int err) {
   // Helper func to send an error to the provided serial interface
   interface->println("{\"error\": " + String(err) + "}");
-}
-
-JsonVariant Commands::clone(JsonBuffer& jb, JsonVariant prototype) {
-  if (prototype.is<JsonObject>()) {
-    const JsonObject& protoObj = prototype;
-    JsonObject& newObj = jb.createObject();
-    for (const auto& kvp : protoObj) {
-      newObj[jb.strdup(kvp.key)] = clone(jb, kvp.value);
-    }
-    return newObj;
-  }
-
-  if (prototype.is<JsonArray>()) {
-    const JsonArray& protoArr = prototype;
-    JsonArray& newArr = jb.createArray();
-    for (const auto& elem : protoArr) {
-      newArr.add(clone(jb, elem));
-    }
-    return newArr;
-  }
-
-  if (prototype.is<char*>()) {
-    return jb.strdup(prototype.as<const char*>());
-  }
-
-  return prototype;
 }

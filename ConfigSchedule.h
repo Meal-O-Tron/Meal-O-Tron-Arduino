@@ -10,7 +10,7 @@ class ConfigSchedule {
   public:
     ConfigSchedule();
 
-    void loadConfig(JsonArray *config);
+    void loadConfig(JsonDocument *config);
     String generateConfig();
 
     LinkedList<Schedule*>* getScheduleList();

@@ -31,10 +31,10 @@ void App::setup() {
 
       configFile.close();
       
-      StaticJsonBuffer<256> jsonBuffer;
-      JsonObject& root = jsonBuffer.parseObject(savedConfigDog);
-      if (root.success()) {
-        m_configDog.loadConfig(&root);
+      StaticJsonDocument<256> doc;
+      DeserializationError error = deserializeJson(doc, savedConfigDog);
+      if (!error) {
+        m_configDog.loadConfig(&doc);
       }
     }
 
@@ -49,10 +49,10 @@ void App::setup() {
 
       configFile.close();
       
-      StaticJsonBuffer<512> jsonBuffer;
-      JsonArray& root = jsonBuffer.parseArray(savedConfigSchedule);
-      if (root.success()) {
-        m_configSchedule.loadConfig(&root);
+      StaticJsonDocument<512> doc;
+      DeserializationError error = deserializeJson(doc, savedConfigSchedule);
+      if (!error) {
+        m_configSchedule.loadConfig(&doc);
       }
     }
 
@@ -68,10 +68,10 @@ void App::setup() {
       configFile.close();
 
       const int capacity = JSON_OBJECT_SIZE(3) + 3 * JSON_ARRAY_SIZE(30);
-      StaticJsonBuffer<capacity> jsonBuffer;
-      JsonObject& root = jsonBuffer.parseObject(savedStats);
-      if (root.success()) {
-        m_stats.loadStats(&root);
+      StaticJsonDocument<capacity> doc;
+      DeserializationError error = deserializeJson(doc, savedStats);
+      if (!error) {
+        m_stats.loadStats(&doc);
       }
     }
   } else {
@@ -102,7 +102,6 @@ void App::loop() {
     String received = m_serial.receive();
     if (received.length() > 0) {
       Serial.println(received);
-      //Serial1.println();
 
       // Process the string
       Commands::processCommand(&received, &Serial1, this);
@@ -120,6 +119,10 @@ ConfigSchedule* App::getConfigSchedule() {
 
 Stats* App::getStats() {
   return &m_stats;
+}
+
+RTC* App::getRTC() {
+  return &m_rtc;
 }
 
 void App::saveConfigDog() {
@@ -156,13 +159,12 @@ String App::getConfigESP() {
     configFile.close();
     return savedConfigESP;
   } else {
-    StaticJsonBuffer<JSON_OBJECT_SIZE(1)> jsonBuffer;
-    JsonObject& root = jsonBuffer.createObject();
+    StaticJsonDocument<JSON_OBJECT_SIZE(1)> doc;
     String configESP;
 
-    root["init"] = false;
+    doc["init"] = false;
 
-    root.printTo(configESP);
+    serializeJson(doc, configESP);
     return configESP;
   }
 }
@@ -184,13 +186,12 @@ void App::checkESPState() {
     // ESP is up, send informations
     m_serial.begin(115200);
 
-    StaticJsonBuffer<512> jsonBuffer;
-    JsonObject& root = jsonBuffer.createObject();
+    StaticJsonDocument<512> doc;
 
-    root["type"] = 100;
-    root["data"] = RawJson(getConfigESP());
+    doc["type"] = 100;
+    doc["data"] = serialized(getConfigESP());
 
-    root.printTo(Serial1);
+    serializeJson(doc, Serial1);
     Serial1.println();
   } else if (digitalRead(2) && m_serial.isUp()) {
     // ESP is down
