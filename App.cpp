@@ -74,6 +74,24 @@ void App::setup() {
         m_stats.loadStats(&doc);
       }
     }
+
+    // Load ESP configuration
+    if (SD.exists("esp.cfg")) {
+      String savedESP;
+      configFile = SD.open("esp.cfg", FILE_READ);
+
+      while (configFile.available()) {
+        savedESP += (char)configFile.read();
+      }
+
+      configFile.close();
+      
+      StaticJsonDocument<512> doc;
+      DeserializationError error = deserializeJson(doc, savedESP);
+      if (!error) {
+        m_configESP.loadConfig(&doc);
+      }
+    }
   } else {
     Serial.println("[FAIL] SD Card");
   }
@@ -118,6 +136,10 @@ ConfigSchedule* App::getConfigSchedule() {
   return &m_configSchedule;
 }
 
+ConfigESP* App::getConfigESP() {
+  return &m_configESP;
+}
+
 Stats* App::getStats() {
   return &m_stats;
 }
@@ -144,30 +166,13 @@ void App::saveConfigSchedule() {
   configFile.close();
 }
 
-String App::getConfigESP() {
-  if (SD.exists("esp.cfg")) {
-    String savedConfigESP;
-    File configFile = SD.open("esp.cfg", FILE_READ);
-    
-    while (configFile.available()) {
-      char actualChar = (char)configFile.read();
-      if (actualChar == '\n')
-        break;
-        
-      savedConfigESP += actualChar;
-    }
-
-    configFile.close();
-    return savedConfigESP;
-  } else {
-    StaticJsonDocument<JSON_OBJECT_SIZE(1)> doc;
-    String configESP;
-
-    doc["init"] = false;
-
-    serializeJson(doc, configESP);
-    return configESP;
-  }
+void App::saveConfigESP() {
+  // Clear the file and save the configuration
+  SD.remove("esp.cfg");
+  
+  File configFile = SD.open("esp.cfg", FILE_WRITE);
+  configFile.print(m_configESP.generateConfig());
+  configFile.close();
 }
 
 void App::onMinuteChanged() {
@@ -190,13 +195,14 @@ void App::checkESPState() {
     StaticJsonDocument<1024> doc;
 
     doc["type"] = 100;
-    doc["data"] = serialized(getConfigESP());
+    doc["data"] = serialized(m_configESP.generateConfig());
     doc["name"] = m_configDog.getName();
     
     JsonObject data = doc["data"].as<JsonObject>();
     data["name"] = m_configDog.getName();
 
     serializeJson(doc, Serial1);
+    serializeJson(doc, Serial);
     Serial1.println();
   } else if (digitalRead(2) && m_serial.isUp()) {
     // ESP is down

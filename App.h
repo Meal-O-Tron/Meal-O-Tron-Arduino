@@ -4,6 +4,7 @@
 #include "Arduino.h"
 #include "ConfigDog.h"
 #include "ConfigSchedule.h"
+#include "ConfigESP.h"
 #include "RTC.h"
 #include "SerialUtils.h"
 #include "Stats.h"
@@ -17,19 +18,21 @@ class App {
 
     ConfigDog* getConfigDog();
     ConfigSchedule* getConfigSchedule();
+    ConfigESP* getConfigESP();
     Stats* getStats();
     RTC* getRTC();
 
     void saveConfigDog();
     void saveConfigSchedule();
+    void saveConfigESP();
 
   private:
     SerialUtils m_serial;
     void checkESPState();
-    String getConfigESP();
 
     ConfigDog m_configDog;
     ConfigSchedule m_configSchedule;
+    ConfigESP m_configESP;
     Stats m_stats;
 
     RTC m_rtc;
