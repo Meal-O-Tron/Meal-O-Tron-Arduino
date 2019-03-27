@@ -175,6 +175,10 @@ void App::saveConfigESP() {
   configFile.close();
 }
 
+void App::resetESP() {
+  
+}
+
 void App::onMinuteChanged() {
   LinkedList<Schedule*> *scheduleList = m_configSchedule.getScheduleList();
   DateTime currentDate = m_rtc.getCurrentDate();

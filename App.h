@@ -26,6 +26,8 @@ class App {
     void saveConfigSchedule();
     void saveConfigESP();
 
+    void resetESP();
+
   private:
     SerialUtils m_serial;
     void checkESPState();

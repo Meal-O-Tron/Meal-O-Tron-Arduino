@@ -31,6 +31,9 @@ class Commands {
       DATA_DOG_REGULATION_VALUE,
       DATA_DOG_END,
 
+      DATA_ESP_NETWORK,
+      DATA_ESP_INIT,
+
       ESP_CONFIG_REQUEST = 100,
       ESP_UPDATE_TIME,
     };

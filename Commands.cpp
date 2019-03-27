@@ -162,6 +162,25 @@ int Commands::processCommand(String *command, HardwareSerial *interface, App *ap
           
           break;
         }
+        case Commands::DATA_ESP_NETWORK: {
+          if (!inData["ssid"].is<String>() || !inData["password"].is<String>()) {
+            sendError(interface, -4);
+            return 0;
+          }
+
+          app->getConfigESP()->setSSID(inData["ssid"].as<String>());
+          app->getConfigESP()->setPassword(inData["password"].as<String>());
+          app->getConfigESP()->setInitialized(true);
+
+          app->resetESP();
+          
+          break;
+        }
+        case Commands::DATA_ESP_INIT: {
+          data["ready"] = app->getConfigESP()->isInitialized();
+          
+          break;
+        }
         case Commands::ESP_UPDATE_TIME: {
           if (data["year"].is<int>() && data["month"].is<int>() && data["date"].is<int>() && data["dow"].is<int>() && data["hour"].is<int>() && data["minute"].is<int>() && data["second"].is<int>()) {
             app->getRTC()->setTime(data["year"].as<int>(), data["month"].as<int>(), data["date"].as<int>(), data["dow"].as<int>(), data["hour"].as<int>(), data["minute"].as<int>(), data["second"].as<int>());
