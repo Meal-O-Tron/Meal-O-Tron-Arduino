@@ -101,6 +101,7 @@ void App::loop() {
     // Store the received string and try to process it
     String received = m_serial.receive();
     if (received.length() > 0) {
+      Serial.print("Received command: ");
       Serial.println(received);
 
       // Process the string
@@ -186,10 +187,14 @@ void App::checkESPState() {
     // ESP is up, send informations
     m_serial.begin(115200);
 
-    StaticJsonDocument<512> doc;
+    StaticJsonDocument<1024> doc;
 
     doc["type"] = 100;
     doc["data"] = serialized(getConfigESP());
+    doc["name"] = m_configDog.getName();
+    
+    JsonObject data = doc["data"].as<JsonObject>();
+    data["name"] = m_configDog.getName();
 
     serializeJson(doc, Serial1);
     Serial1.println();

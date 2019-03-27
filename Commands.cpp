@@ -185,6 +185,10 @@ int Commands::processCommand(String *command, HardwareSerial *interface, App *ap
 
       serializeJson(doc, *interface);
       interface->println();
+
+      Serial.print("Sending response: ");
+      serializeJson(doc, Serial);
+      Serial.println();
       
       return 1;
     } else {
