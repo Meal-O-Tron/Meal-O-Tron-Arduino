@@ -4,6 +4,8 @@
 
 App::App()
 : m_serial(&Serial1)
+, m_oledDisplay(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET)
+, m_displayReady(false)
 {
   
 }
@@ -96,15 +98,27 @@ void App::setup() {
     Serial.println("[FAIL] SD Card");
   }
 
+  // Init OLED
+  if (m_oledDisplay.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println("[OK] OLED Display");
+
+    m_displayReady = true;
+  } else {
+    Serial.println("[FAIL] OLED Display");
+  }
+
   // To read ESP state
   pinMode(2, INPUT_PULLUP);
+
+  // Food distribution pins
+  pinMode(8, OUTPUT);
   
   Serial.println("=== MEAL-O-TRON STARTED ===");
 }
 
 void App::loop() {
   checkESPState();
-  
+
   // Update rtc status and check for scheduled event
   m_rtc.update();
 
@@ -113,6 +127,38 @@ void App::loop() {
   
   // Read serial ports for new data
   m_serial.update();
+
+  // Stop the distributor if running and food has been distributed
+  if (m_distributing && analogRead(A0) >= 300) {
+    digitalWrite(8, LOW);
+    m_distributing = false;
+
+    Serial.println("Stopping distribution");
+  }
+
+  if (m_displayReady) {
+    m_oledDisplay.clearDisplay();
+
+    m_oledDisplay.setTextSize(2);
+    m_oledDisplay.setTextColor(WHITE);
+    m_oledDisplay.setCursor(0, 0);
+    m_oledDisplay.println(m_configDog.getName());
+    m_oledDisplay.println(String(m_configDog.getWeight()) + "kg");
+
+    DateTime currentTime = m_rtc.getCurrentDate();
+
+    m_oledDisplay.setTextSize(1);
+    m_oledDisplay.setCursor(0, 55);
+    m_oledDisplay.print(String(currentTime.hour()) + ":" + String(currentTime.minute()));
+
+    if (m_distributing) {
+      m_oledDisplay.println(" - Distributing");
+    } else {
+      m_oledDisplay.println();
+    }
+
+    m_oledDisplay.display();
+  }
 
   // Data available (ends with \n)
   if (m_serial.available()) {
@@ -176,17 +222,29 @@ void App::saveConfigESP() {
 }
 
 void App::resetESP() {
-  
+  StaticJsonDocument<1024> doc;
+
+  doc["type"] = 103;
+  doc.createNestedObject("data");
+
+  serializeJson(doc, Serial1);
+  Serial1.println();
 }
 
 void App::onMinuteChanged() {
   LinkedList<Schedule*> *scheduleList = m_configSchedule.getScheduleList();
   DateTime currentDate = m_rtc.getCurrentDate();
+
+  Serial.println("Minute has changed, " + String(currentDate.hour()) + ":" + String(currentDate.minute()));
   
   for (int i = 0; i < scheduleList->size(); i++) {
     Schedule *currentSchedule = scheduleList->get(i);
+    Serial.println("Checking " + String(currentSchedule->getHour()) + ":" + String(currentSchedule->getMinute()));
     if (currentSchedule->isEnabled() && currentSchedule->getHour() == currentDate.hour() && currentSchedule->getMinute() == currentDate.minute()) {
-      Serial.println("okay");
+      digitalWrite(8, HIGH);
+      m_distributing = true;
+
+      Serial.println("Starting distribution");
     }
   }
 }
@@ -206,7 +264,6 @@ void App::checkESPState() {
     data["name"] = m_configDog.getName();
 
     serializeJson(doc, Serial1);
-    serializeJson(doc, Serial);
     Serial1.println();
   } else if (digitalRead(2) && m_serial.isUp()) {
     // ESP is down

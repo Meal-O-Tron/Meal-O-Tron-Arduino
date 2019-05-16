@@ -33,9 +33,12 @@ class Commands {
 
       DATA_ESP_NETWORK,
       DATA_ESP_INIT,
+      DATA_ESP_WIFI_SCAN,
 
       ESP_CONFIG_REQUEST = 100,
       ESP_UPDATE_TIME,
+      ESP_CONFIG,
+      ESP_RESET
     };
 
     static int processCommand(String *command, HardwareSerial *interface, App *app);

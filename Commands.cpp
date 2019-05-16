@@ -11,7 +11,7 @@ int Commands::processCommand(String *command, HardwareSerial *interface, App *ap
       JsonObject inData = doc["data"].as<JsonObject>();
 
       // Populate common values accross request types
-      DynamicJsonDocument response(512);
+      DynamicJsonDocument response(1500);
       
       response["type"] = (int)rqt;
       JsonObject data = inData;
@@ -24,9 +24,11 @@ int Commands::processCommand(String *command, HardwareSerial *interface, App *ap
           data_stats["weight"] = serialized(app->getStats()->getStat(Stats::STAT_WEIGHT));
           data_stats["food"] = serialized(app->getStats()->getStat(Stats::STAT_FOOD));
           data_stats["arrival"] = serialized(app->getStats()->getStat(Stats::STAT_ARRIVAL));
+
+          String scheduleArray = app->getConfigSchedule()->generateConfig();
           
           data["dog"] = serialized(app->getConfigDog()->generateConfig());
-          data["schedule"] = serialized(app->getConfigSchedule()->generateConfig());
+          data["schedule"] = serialized(scheduleArray);
 
           break;
         }

@@ -9,6 +9,13 @@
 #include "SerialUtils.h"
 #include "Stats.h"
 
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET 4
+
 class App {
   public:
     App();
@@ -37,8 +44,13 @@ class App {
     ConfigESP m_configESP;
     Stats m_stats;
 
+    boolean m_distributing;
+
     RTC m_rtc;
     void onMinuteChanged();
+    
+    Adafruit_SSD1306 m_oledDisplay;
+    boolean m_displayReady;
 };
 
 #endif // APP_H
